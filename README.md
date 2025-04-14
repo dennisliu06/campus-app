@@ -57,7 +57,7 @@ Campus is a modern web platform that helps college students connect, split ride 
 
 If you run into issues or have feature requests:
 
-- Open an issue: https://github.com/your-username/campus-app/issues
+- Open an issue: https://github.com/dennisliu06/campus-app/issues
 - Or reach out to the Campus team directly through the app
 
 ---
