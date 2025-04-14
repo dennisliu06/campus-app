@@ -242,14 +242,14 @@ const MyProfile = () => {
       color: "bg-gray-100",
       iconColor: "text-purple-600",
     },
-    /*{
+    {
       title: "Group Rides",
       description: "Organize carpooling for events",
       icon: UsersRound,
       href: "/group-ride",
       color: "bg-green-100",
       iconColor: "text-green-600",
-    }*/
+    }
   ];
 
   return (
