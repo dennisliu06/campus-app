@@ -26,7 +26,7 @@ export default function Home() {
             Share rides, split costs, and make new friends along the way.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md">
+          <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md justify-center">
             <Link
               href="/register"
               className="bg-white text-[#8163e9] px-8 py-3 rounded-lg font-semibold hover:bg-white/90 transition-colors flex items-center justify-center gap-2 group"
