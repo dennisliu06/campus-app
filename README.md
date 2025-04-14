@@ -65,4 +65,3 @@ If you run into issues or have feature requests:
 ## 👨‍💻 Author
 
 Made with ❤️ by the Campus team — connecting students, one ride at a time.
-# campus-app
