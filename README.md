@@ -4,7 +4,7 @@
 
 Campus is a modern web platform that helps college students connect, split ride costs, and make new friends along the way. Whether you're heading home for break or going on a weekend adventure, find your perfect travel companion on Campus.
 
-![Campus Hero Screenshot](./public/screenshot.png)
+![Campus Hero Screenshot](./public/home-page-screenshot.png)
 
 ---
 
