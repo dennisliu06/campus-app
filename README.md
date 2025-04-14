@@ -4,7 +4,7 @@
 
 Campus is a modern web platform that helps college students connect, split ride costs, and make new friends along the way. Whether you're heading home for break or going on a weekend adventure, find your perfect travel companion on Campus.
 
-![Campus Hero Screenshot](./public/screenshot.png)
+![Campus Hero Screenshot](./public/home-page-screenshot.png)
 
 ---
 
@@ -57,7 +57,7 @@ Campus is a modern web platform that helps college students connect, split ride 
 
 If you run into issues or have feature requests:
 
-- Open an issue: https://github.com/your-username/campus-app/issues
+- Open an issue: https://github.com/dennisliu06/campus-app/issues
 - Or reach out to the Campus team directly through the app
 
 ---
@@ -65,4 +65,3 @@ If you run into issues or have feature requests:
 ## 👨‍💻 Author
 
 Made with ❤️ by the Campus team — connecting students, one ride at a time.
-# campus-app
