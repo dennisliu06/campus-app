@@ -1,5 +1,6 @@
 import Modal from "@/components/Modal";
 import { useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 
 // GroupRideModal with two tabs: Create and Join
 export default function GroupRideModal({ isOpen, onClose, onCreate, onJoin }) {
@@ -64,108 +65,137 @@ export default function GroupRideModal({ isOpen, onClose, onCreate, onJoin }) {
         />
       </div>
 
-
-      {activeTab === "create" ? (
-        <div>
-          <h2 className="text-xl font-semibold mb-4">Create a Group Ride</h2>
-          <form onSubmit={handleCreateSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Group Name
-              </label>
-              <input
-                type="text"
-                name="name"
-                placeholder="Ski Trip 2025"
-                value={createForm.name}
-                onChange={handleCreateChange}
-                className="mt-1 w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Destination
-              </label>
-              <input
-                type="text"
-                name="destination"
-                placeholder="Mount Everest"
-                value={createForm.destination}
-                onChange={handleCreateChange}
-                className="mt-1 w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Description
-              </label>
-              <textarea
-                name="description"
-                value={createForm.description}
-                onChange={handleCreateChange}
-                rows="4"
-                className="mt-1 w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Image
-              </label>
-              <input
-                type="file"
-                name="image"
-                accept="image/*"
-                onChange={handleCreateChange}
-                className="mt-1 w-full"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Color
-              </label>
-              <ColorDropdown
-                value={createForm.color}
-                onChange={(val) =>
-                  setCreateForm((prev) => ({ ...prev, color: val }))
-                }
-              />
-            </div>
-            <button
-              type="submit"
-              className="w-full bg-campus-purple text-white py-2 rounded hover:bg-campus-purple-hover"
+      <AnimatePresence mode="wait">
+        {activeTab === "create" ? (
+          <motion.div
+            key="create"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3 }}
+            className="overflow-hidden"
+          >
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3, duration: 0.3 }}
             >
-              Create Group Ride
-            </button>
-          </form>
-        </div>
-      ) : (
-        <div>
-          <h2 className="text-xl font-semibold mb-4">Join a Group Ride</h2>
-          <form onSubmit={handleJoinSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Group Code
-              </label>
-              <input
-                type="text"
-                value={joinCode}
-                onChange={(e) => setJoinCode(e.target.value)}
-                className="mt-1 w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
-            </div>
-            <button
-              type="submit"
-              className="w-full bg-campus-purple text-white py-2 rounded hover:bg-campus-purple-hover"
+              <h2 className="text-xl font-semibold mb-4">
+                Create a Group Ride
+              </h2>
+              <form onSubmit={handleCreateSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Group Name
+                  </label>
+                  <input
+                    type="text"
+                    name="name"
+                    placeholder="Ski Trip 2025"
+                    value={createForm.name}
+                    onChange={handleCreateChange}
+                    className="mt-1 w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Destination
+                  </label>
+                  <input
+                    type="text"
+                    name="destination"
+                    placeholder="Mount Everest"
+                    value={createForm.destination}
+                    onChange={handleCreateChange}
+                    className="mt-1 w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Description
+                  </label>
+                  <textarea
+                    name="description"
+                    value={createForm.description}
+                    onChange={handleCreateChange}
+                    rows="4"
+                    className="mt-1 w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Image
+                  </label>
+                  <input
+                    type="file"
+                    name="image"
+                    accept="image/*"
+                    onChange={handleCreateChange}
+                    className="mt-1 w-full"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Color
+                  </label>
+                  <ColorDropdown
+                    value={createForm.color}
+                    onChange={(val) =>
+                      setCreateForm((prev) => ({ ...prev, color: val }))
+                    }
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="w-full bg-campus-purple text-white py-2 rounded hover:bg-campus-purple-hover"
+                >
+                  Create Group Ride
+                </button>
+              </form>
+            </motion.div>
+          </motion.div>
+        ) : (
+          <motion.div
+            key="join"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3 }}
+            className="overflow-hidden"
+          >
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3, duration: 0.3 }}
             >
-              Join Group Ride
-            </button>
-          </form>
-        </div>
-      )}
+              <h2 className="text-xl font-semibold mb-4">Join a Group Ride</h2>
+              <form onSubmit={handleJoinSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Group Code
+                  </label>
+                  <input
+                    type="text"
+                    value={joinCode}
+                    onChange={(e) => setJoinCode(e.target.value)}
+                    className="mt-1 w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="w-full bg-campus-purple text-white py-2 rounded hover:bg-campus-purple-hover"
+                >
+                  Join Group Ride
+                </button>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </Modal>
   );
 }
