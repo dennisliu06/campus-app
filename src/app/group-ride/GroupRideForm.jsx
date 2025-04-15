@@ -1,7 +1,6 @@
 import Modal from "@/components/Modal";
 import { useEffect, useRef, useState } from "react";
 
-
 // GroupRideModal with two tabs: Create and Join
 export default function GroupRideModal({ isOpen, onClose, onCreate, onJoin }) {
   const [activeTab, setActiveTab] = useState("create");
@@ -41,24 +40,30 @@ export default function GroupRideModal({ isOpen, onClose, onCreate, onJoin }) {
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
       {/* Tabs Header */}
-      <div className="flex justify-around mb-4">
+      <div className="relative flex justify-around mb-6 border-b border-gray-200">
         <button
           onClick={() => setActiveTab("create")}
-          className={`px-4 py-2 ${
-            activeTab === "create" ? "border-b-2 border-campus-purple font-bold" : ""
-          }`}
+          className="relative z-10 w-1/2 text-center py-2 font-medium"
         >
           Create Group
         </button>
         <button
           onClick={() => setActiveTab("join")}
-          className={`px-4 py-2 ${
-            activeTab === "join" ? "border-b-2 border-campus-purple font-bold" : ""
-          }`}
+          className="relative z-10 w-1/2 text-center py-2 font-medium"
         >
           Join Group
         </button>
+
+        {/* Animated Underline */}
+        <span
+          className="absolute bottom-0 h-1 bg-campus-purple transition-all duration-300 ease-in-out"
+          style={{
+            width: "50%",
+            left: activeTab === "create" ? "0%" : "50%",
+          }}
+        />
       </div>
+
 
       {activeTab === "create" ? (
         <div>
@@ -163,16 +168,15 @@ export default function GroupRideModal({ isOpen, onClose, onCreate, onJoin }) {
       )}
     </Modal>
   );
-};
-
+}
 
 // Define the available colors with their labels and hex values
 const colors = [
-    { value: "red", label: "Red", primary: "#e53e3e", hover: "#c53030" },
-    { value: "blue", label: "Blue", primary: "#3182ce", hover: "#2b6cb0" },
-    { value: "green", label: "Green", primary: "#38a169", hover: "#2f855a" },
-    { value: "yellow", label: "Yellow", primary: "#d69e2e", hover: "#b7791f" },
-    { value: "purple", label: "Purple", primary: "#8163e9", hover: "#6f51d9" },
+  { value: "red", label: "Red", primary: "#e53e3e", hover: "#c53030" },
+  { value: "blue", label: "Blue", primary: "#3182ce", hover: "#2b6cb0" },
+  { value: "green", label: "Green", primary: "#38a169", hover: "#2f855a" },
+  { value: "yellow", label: "Yellow", primary: "#d69e2e", hover: "#b7791f" },
+  { value: "purple", label: "Purple", primary: "#8163e9", hover: "#6f51d9" },
 ];
 
 // Custom color dropdown component

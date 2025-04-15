@@ -8,7 +8,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import GroupRideForm from "./GroupRideForm";
 import GroupRideModal from "./GroupRideForm";
-import { createGroup } from "@/actions/create-group";
+import { addMember, createGroup } from "@/actions/groups";
 import toast from "react-hot-toast";
 import {
   collection,
@@ -76,12 +76,28 @@ export default function GroupRide() {
     }
   };
 
-  const handleJoinGroup = (code) => {
+  const handleJoinGroup = async (code) => {
     const matchedGroup = allGroups.find((group) => group.id == code);
 
     if (matchedGroup) {
-      toast.error(`You are already in ${matchedGroup.name}`);
+      toast.error(`You are already in ${matchedGroup.name}!`);
+      return;
     }
+
+    const added = await addMember(user.uid, code);
+    if (added.error) {
+      toast.error(added.error);
+    }
+
+    getGroupById(code)
+      .then((group) => {
+        setAllGroups((prev) => [group, ...prev]);
+      })
+      .catch((e) => {
+        console.log(e);
+      });
+
+    toast.success(added.success);
   };
 
   useEffect(() => {

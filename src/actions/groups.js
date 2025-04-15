@@ -1,7 +1,7 @@
 "use server";
 
 import { db, storage } from "@/lib/firebase";
-import { doc, serverTimestamp, setDoc } from "firebase/firestore";
+import { doc, runTransaction, serverTimestamp, setDoc } from "firebase/firestore";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { nanoid } from "nanoid";
 
@@ -66,3 +66,25 @@ export const createGroup = async ({
     return { error: "An error occurred!" };
   }
 };
+
+export const addMember = async (userId, groupId) => {
+  const groupDocRef = doc(db, "groups", groupId)
+
+  try {
+    await runTransaction(db, async (transaction) => {
+      const groupDoc = await transaction.get(groupDocRef)
+      if (!groupDoc.exists()) {
+        return { error: "Group does not exist!" }
+      }
+
+      const group = groupDoc.data()
+      const currentMembers = group.members
+      const newMembers = [...currentMembers, userId]
+      transaction.update(groupDocRef, { members: newMembers } )
+    })
+    console.log("joined group")
+    return { success: "Joined group!" }
+  } catch (e) {
+    console.log("error: ", e)
+  }
+}
