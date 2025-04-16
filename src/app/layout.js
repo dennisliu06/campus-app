@@ -7,6 +7,7 @@ import toast, { Toaster } from "react-hot-toast";
 import AppWrapper from "@/components/AppWrapper";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { Analytics } from "@vercel/analytics/react"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -35,6 +36,7 @@ export default function RootLayout({ children }) {
               <Navbar />
               {children}
               <Footer />
+              <Analytics />
             </NotificationProvider>
           </AppWrapper>
         </AuthProvider>
