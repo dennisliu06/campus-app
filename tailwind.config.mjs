@@ -61,5 +61,11 @@ export default {
       },
     },
   },
+  safelist: [
+    {
+      // matches bg-green-500, bg-red-500, ..., bg-lime-500
+      pattern: /^bg-(?:green|red|purple|yellow|blue|cyan|amber|lime)-500$/,
+    },
+  ],
   plugins: [require("tailwindcss-animate")],
 };

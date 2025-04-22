@@ -1,6 +1,7 @@
 import Modal from "@/components/Modal";
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { createPortal } from "react-dom";
 
 // GroupRideModal with two tabs: Create and Join
 export default function GroupRideModal({ isOpen, onClose, onCreate, onJoin }) {
@@ -71,9 +72,9 @@ export default function GroupRideModal({ isOpen, onClose, onCreate, onJoin }) {
             key="create"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
+            exit={{ opacity: 0, height: 0, overflow: 'hidden' }}
             transition={{ duration: 0.3 }}
-            className="overflow-hidden"
+            className="overflow-visible"
           >
             <motion.div
               initial={{ opacity: 0 }}
@@ -269,3 +270,4 @@ const ColorDropdown = ({ value, onChange }) => {
     </div>
   );
 };
+
