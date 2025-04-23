@@ -1,6 +1,6 @@
 "use client";
 
-import { getGroupById, getRidesByGroupId } from "@/data/group-rides";
+import { checkUserInRides, getGroupById, getRidesByGroupId } from "@/data/group-rides";
 import { Car, Coffee, Loader2, Music, UserPlus, Users } from "lucide-react";
 import Image from "next/image";
 import { useParams } from "next/navigation";
@@ -9,8 +9,9 @@ import toast from "react-hot-toast";
 import GroupRideModal from "../GroupRideForm";
 import RideForm from "./RideForm";
 import { useAuth } from "@/context/AuthContext";
-import { createRide } from "@/actions/groups";
+import { createRide, joinRide } from "@/actions/groups";
 import { getUserById } from "@/data/users";
+import RideCard from "./RideCard";
 
 const colors = [
   "green",
@@ -31,6 +32,7 @@ export default function GroupPage() {
   const [loading, setLoading] = useState(true);
   const [allRides, setAllRides] = useState([]);
   const [profile, setProfile] = useState();
+  const [inRide, setInRide] = useState(false);
   const { user, loading: authLoading } = useAuth();
 
   const onCopy = () => {};
@@ -70,6 +72,18 @@ export default function GroupPage() {
     fetchRides();
   }, [groupId]);
 
+  // useEffect(() => {
+  //   const fetchUserInRide = async () => {
+  //     const isInRide = await checkUserInRides(user.uid, groupId)
+
+  //     setInRide(isInRide)
+  //   }
+
+  //   if (user) {
+  //     fetchUserInRide()
+  //   }
+  // }, [allRides])
+
   useEffect(() => {
     const fetchProfile = async () => {
       setLoading(true);
@@ -108,7 +122,7 @@ export default function GroupPage() {
   const handleCreateGroup = async ({ carId, maxRiders, vibe }) => {
     const driverId = user.uid;
     const driverName = profile.fullName;
-    const driverPfp = profile.profilePicUrl;
+    const driverPfp = profile.profilePicURL;
 
     const driver = {
       id: driverId,
@@ -135,8 +149,32 @@ export default function GroupPage() {
     setAllRides((prev) => [createdRide, ...prev]);
   };
 
-  const handleJoinGroup = () => {
-    console.log("j");
+  const handleJoinRide = async (rideId) => {
+    const riderId = user.uid;
+    const riderName = profile.fullName;
+    const riderPfp = profile.profilePicURL;
+    const riderUniversity = profile.university
+
+    console.log(riderPfp)
+    console.log(riderUniversity)
+
+
+    const rider = {
+      id: riderId,
+      name: riderName,
+      profilePicUrl: riderPfp,
+    };
+    
+    console.log(rideId)
+
+    const joinedRide = await joinRide(groupId, rideId, rider)
+
+    if (joinedRide.success) {
+      toast.success(joinedRide.success)
+    } else {
+      toast.error(joinedRide.error)
+    }
+
   };
 
   return (
@@ -193,78 +231,7 @@ export default function GroupPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
             {/* Car 1 */}
             {allRides.map((ride) => (
-              <div
-                key={ride.id}
-                className="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1"
-              >
-                <RandomBanner>
-                  <div className="flex items-center gap-2">
-                    <div className="bg-white text-purple-600 rounded-full p-2">
-                      <Car size={24} />
-                    </div>
-                    <span className="font-bold text-lg">
-                      {ride.driver.name}'s Ride
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1 bg-white text-purple-800 px-3 py-1 rounded-full text-sm font-bold">
-                    <Users size={16} />
-                    <span>3/{ride.maxRiders}</span>
-                  </div>
-                </RandomBanner>
-                <div className="p-5">
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="relative">
-                      <Image
-                        src={ride.driver.profilePicUrl || "/defaultPfp.jpg"}
-                        alt={ride.driver.name ?? "Driver profile picture"}
-                        width={48}
-                        height={48}
-                        className="rounded-full border-2 border-purple-400 object-cover"
-                      />
-                      <div className="absolute -bottom-1 -right-1 bg-purple-500 text-white rounded-full p-1">
-                        <Coffee size={12} />
-                      </div>
-                    </div>
-                    <div>
-                      <div className="font-bold">{ride.driver.name}</div>
-                      <div className="text-xs text-purple-600 font-bold uppercase">
-                        Driver Extraordinaire
-                      </div>
-                    </div>
-                  </div>
-                  <div className="mb-4 flex items-center gap-2 text-sm bg-purple-50 p-2 rounded-lg">
-                    <Music size={16} className="text-purple-500" />
-                    <span className="font-medium">{ride.vibe}</span>
-                  </div>
-                  <div className="pl-4 border-l-2 border-purple-200 ml-4">
-                    <div className="flex items-center gap-2 mb-3 animate-fadeIn">
-                      <img
-                        src="/api/placeholder/40/40"
-                        alt="Taylor Smith"
-                        className="w-10 h-10 rounded-full border border-gray-200"
-                      />
-                      <span className="font-medium">Taylor Smith</span>
-                    </div>
-                    <div className="flex items-center gap-2 mb-3 animate-fadeIn">
-                      <img
-                        src="/api/placeholder/40/40"
-                        alt="Jamie Lee"
-                        className="w-10 h-10 rounded-full border border-gray-200"
-                      />
-                      <span className="font-medium">Jamie Lee</span>
-                    </div>
-                    <div className="mt-4">
-                      <button
-                        onClick={() => joinCar(1)}
-                        className="bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 py-2 px-4 rounded-full flex items-center gap-2 font-medium text-sm transform hover:scale-105 transition-all"
-                      >
-                        <UserPlus size={16} />
-                        Join this adventure mobile!
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <RideCard key={ride.id} ride={ride} joinGroup={() => handleJoinRide(ride.id)} />
             ))}
             <div className="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1">
               <div className="bg-campus-purple text-white p-4 flex justify-between items-center">
@@ -321,7 +288,7 @@ export default function GroupPage() {
                   </div>
                   <div className="mt-4">
                     <button
-                      onClick={() => joinCar(1)}
+                      onClick={handleJoinRide}
                       className="bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 py-2 px-4 rounded-full flex items-center gap-2 font-medium text-sm transform hover:scale-105 transition-all"
                     >
                       <UserPlus size={16} />

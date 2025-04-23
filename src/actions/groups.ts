@@ -1,41 +1,49 @@
 "use server";
 
 import { db, storage } from "@/lib/firebase";
-import { Timestamp, addDoc, collection, doc, runTransaction, serverTimestamp, setDoc } from "firebase/firestore";
+import {
+  Timestamp,
+  addDoc,
+  collection,
+  doc,
+  getDoc,
+  runTransaction,
+  serverTimestamp,
+  setDoc,
+} from "firebase/firestore";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { nanoid } from "nanoid";
 
 /**
- * @typedef CreateGroupForm 
+ * @typedef CreateGroupForm
  * @property {string} name - Name of the group
  * @property {string} destination - Destination of the ride
  * @property {string} description - Description of the group
  * @property {string} color - Color tag (e.g. 'red', 'yellow')
  * @property {string|null} imageUrl - Optional image URL for the group
  * @property {string} ownerId - User ID of the group creator
- * 
+ *
  * @typedef ErrorMessage
  * @property {string} error - Error message
- * 
+ *
  * @typedef SuccessMessage
  * @property {string} success- Success message
- * 
+ *
  * @typedef ReturnedMessage
  * @property {ErrorMessage | SuccessMessage} message - Message returned
  */
 
-
 interface createGroupForm {
-  name: string,
-  destination: string,
-  description: string,
-  color: string,
-  image: File,
-  ownerId: string
+  name: string;
+  destination: string;
+  description: string;
+  color: string;
+  image: File;
+  ownerId: string;
 }
 
 /**
- * 
+ *
  * @param {CreateGroupForm} param0 An object containing the name, destination, description, color, image, and owner ID
  * @returns {ReturnedMessage} A message based off if the group was created
  */
@@ -49,7 +57,7 @@ export const createGroup = async ({
 }: createGroupForm) => {
   const groupId = nanoid(10);
   let imageUrl = null;
-  const createdAt = serverTimestamp()
+  const createdAt = serverTimestamp();
 
   if (!name) return { error: "Name is required to make a group!" };
   if (!destination)
@@ -100,48 +108,47 @@ export const createGroup = async ({
   }
 };
 
-
 /**
- * 
+ *
  * @param {string} userId The user's ID
  * @param {string} groupId The group's ID
  * @returns {ReturnedMessage} Message based off if the user is able to join
  */
 export const addMember = async (userId: string, groupId: string) => {
-  const groupDocRef = doc(db, "groups", groupId)
+  const groupDocRef = doc(db, "groups", groupId);
 
   try {
     await runTransaction(db, async (transaction) => {
-      const groupDoc = await transaction.get(groupDocRef)
+      const groupDoc = await transaction.get(groupDocRef);
       if (!groupDoc.exists()) {
-        return { error: "Group does not exist!" }
+        return { error: "Group does not exist!" };
       }
 
-      const group = groupDoc.data()
-      const currentMembers = group.members
-      const newMembers = [...currentMembers, userId]
-      transaction.update(groupDocRef, { members: newMembers } )
-    })
-    console.log("joined group")
-    return { success: "Joined group!" }
+      const group = groupDoc.data();
+      const currentMembers = group.members;
+      const newMembers = [...currentMembers, userId];
+      transaction.update(groupDocRef, { members: newMembers });
+    });
+    console.log("joined group");
+    return { success: "Joined group!" };
   } catch (e) {
-    console.log("error: ", e)
+    console.log("error: ", e);
   }
-}
+};
 
 interface CreateRideForm {
-  groupId: string,
-  driver: Rider,
-  vibe: string,
-  carId: string,
-  maxRiders: number,
-  riders?: Rider[],
+  groupId: string;
+  driver: Rider;
+  vibe: string;
+  carId: string;
+  maxRiders: number;
+  riders?: Rider[];
 }
 
 interface Rider {
-  id: string,
-  name: string,
-  profileUrl: string,
+  id: string;
+  name: string;
+  profileUrl: string;
 }
 
 export const createRide = async ({
@@ -150,13 +157,15 @@ export const createRide = async ({
   vibe,
   carId,
   maxRiders,
-  riders
+  riders,
 }: CreateRideForm) => {
-  const createdAt = serverTimestamp()
+  const createdAt = serverTimestamp();
 
-  if (!riders) { riders = [] }
+  if (!riders) {
+    riders = [];
+  }
 
-  console.log("Driver, ", driver)
+  console.log("Driver, ", driver);
 
   const rideData = {
     groupId,
@@ -166,16 +175,75 @@ export const createRide = async ({
     maxRiders,
     riders,
     createdAt,
-  }
+  };
 
-  const ridesCollectionRef = collection(db, "groups", groupId, "rides")
+  const ridesCollectionRef = collection(db, "groups", groupId, "rides");
 
   try {
-    const rideDocRef = await addDoc(ridesCollectionRef, rideData)
+    const rideDocRef = await addDoc(ridesCollectionRef, rideData);
 
-    return { success: "Ride added!", id: rideDocRef.id}
+    return { success: "Ride added!", id: rideDocRef.id };
+  } catch (e) {
+    console.log(e);
+  }
+};
 
-  } catch(e) {
+export const joinRide = async (
+  groupId: string,
+  rideId: string,
+  rider: Rider
+) => {
+  const ridesCollectionRef = collection(db, "groups", groupId, "rides");
+  const rideDocRef = doc(ridesCollectionRef, rideId);
+
+  
+  try {
+    let inRide = false
+    let rideExists = true
+    await runTransaction(db, async (transaction) => {
+      const rideDoc = await transaction.get(rideDocRef)
+      if (!rideDoc.exists()) {
+        rideExists = false
+        return
+      }
+
+      const ride = rideDoc.data()
+
+      if (
+        (ride.riders && ride.riders.some((r: Rider) => r.id === rider.id)) ||
+        ride.driver.id == rider.id
+      ) {
+        inRide = true
+        return
+      }
+
+      const riderList = ride.riders
+
+
+      riderList.push(rider)
+
+
+
+      transaction.update(rideDocRef, { riders: riderList })
+    })
+
+    if (inRide) { return { error: "Already in this ride!" } }
+    if (!rideExists) { return { error: "This ride doesnt exist!" } }
+
+    return { success: "Joined ride!" }
+  } catch (e) {
     console.log(e)
   }
-}
+
+
+
+  // if (!rideDoc.exists()) {
+  //   return { error: "Ride doesnt exist!" };
+  // }
+
+  // const ride = rideDoc.data();
+
+
+  
+
+};

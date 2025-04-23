@@ -113,3 +113,24 @@ export async function getRidesByGroupId(
     return { error: e.message || "Unknown error" };
   }
 }
+
+
+export async function checkUserInRides(userId: string, groupId: string) {
+  const rideDocRef = collection(db, "groups", groupId, "rides")
+  const rideDocs = await getDocs(rideDocRef)
+
+  for (const rideDoc of rideDocs.docs) {
+    const ride = rideDoc.data() as Ride
+
+    const isDriver = ride.driverId === userId
+    const isRider = ride.riders.some((r: any) => r.id === userId)
+
+    if (isDriver || isRider) {
+      // user already in a ride
+      return true
+    }
+  }
+
+  // not in any rides
+  return false
+}

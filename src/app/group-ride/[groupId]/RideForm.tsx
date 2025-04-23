@@ -38,7 +38,7 @@ export default function RideForm({
         const fetchedCars = await getCarsByUserId(userId);
         setCars(fetchedCars);
 
-        if (fetchedCars) {
+        if (fetchedCars && fetchedCars[0]) {
           setForm((prev) => ({...prev, carId: fetchedCars[0].id }));
         } else {
           setHasCars(false);
