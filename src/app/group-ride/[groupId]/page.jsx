@@ -1,6 +1,10 @@
 "use client";
 
-import { checkUserInRides, getGroupById, getRidesByGroupId } from "@/data/group-rides";
+import {
+  checkUserInRides,
+  getGroupById,
+  getRidesByGroupId,
+} from "@/data/group-rides";
 import { Car, Coffee, Loader2, Music, UserPlus, Users } from "lucide-react";
 import Image from "next/image";
 import { useParams } from "next/navigation";
@@ -9,7 +13,7 @@ import toast from "react-hot-toast";
 import GroupRideModal from "../GroupRideForm";
 import RideForm from "./RideForm";
 import { useAuth } from "@/context/AuthContext";
-import { createRide, joinRide } from "@/actions/groups";
+import { createRide, deleteRide, joinRide } from "@/actions/groups";
 import { getUserById } from "@/data/users";
 import RideCard from "./RideCard";
 
@@ -34,6 +38,8 @@ export default function GroupPage() {
   const [profile, setProfile] = useState();
   const [inRide, setInRide] = useState(false);
   const { user, loading: authLoading } = useAuth();
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [rideToDelete, setRideToDelete] = useState(null);
 
   const onCopy = () => {};
 
@@ -72,17 +78,19 @@ export default function GroupPage() {
     fetchRides();
   }, [groupId]);
 
-  // useEffect(() => {
-  //   const fetchUserInRide = async () => {
-  //     const isInRide = await checkUserInRides(user.uid, groupId)
+  useEffect(() => {
+    const fetchUserInRide = async () => {
+      if (!user) {
+        return;
+      }
 
-  //     setInRide(isInRide)
-  //   }
+      const isInRide = await checkUserInRides(user.uid, groupId);
 
-  //   if (user) {
-  //     fetchUserInRide()
-  //   }
-  // }, [allRides])
+      setInRide(isInRide);
+    };
+
+    fetchUserInRide();
+  }, [groupId, user]);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -102,6 +110,32 @@ export default function GroupPage() {
 
     fetchProfile();
   }, [user]);
+
+  const handleOpenDialog = (rideId) => {
+    setRideToDelete(rideId);
+    setShowConfirmDialog(true);
+  };
+
+  const handleCloseDialog = () => {
+    setRideToDelete(null);
+    setShowConfirmDialog(false);
+  };
+
+  const handleDeleteRide = async () => {
+    if (rideToDelete) {
+      handleCloseDialog();
+
+      // Call your function to delete the ride here
+      const deleteStatus = await deleteRide(rideToDelete, groupId)
+
+      if (deleteStatus.success) {
+        toast.success(deleteStatus.success)
+      } else {
+        toast.error(deleteStatus.error)
+      }
+      
+    }
+  };
 
   if (loading || authLoading) {
     return (
@@ -153,32 +187,59 @@ export default function GroupPage() {
     const riderId = user.uid;
     const riderName = profile.fullName;
     const riderPfp = profile.profilePicURL;
-    const riderUniversity = profile.university
+    const riderUniversity = profile.university;
 
-    console.log(riderPfp)
-    console.log(riderUniversity)
-
+    console.log(riderPfp);
+    console.log(riderUniversity);
 
     const rider = {
       id: riderId,
       name: riderName,
       profilePicUrl: riderPfp,
     };
-    
-    console.log(rideId)
 
-    const joinedRide = await joinRide(groupId, rideId, rider)
+    console.log(rideId);
+
+    const joinedRide = await joinRide(groupId, rideId, rider);
 
     if (joinedRide.success) {
-      toast.success(joinedRide.success)
+      toast.success(joinedRide.success);
     } else {
-      toast.error(joinedRide.error)
+      toast.error(joinedRide.error);
     }
-
   };
+
+  const uniqueRides = Array.from(
+    new Map(allRides.map((ride) => [ride.id, ride])).values()
+  );
 
   return (
     <>
+      {/* Confirmation Dialog */}
+      {showConfirmDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white rounded-lg p-6 w-96 shadow-xl">
+            <div className="text-lg font-bold mb-4">Are you sure?</div>
+            <p className="mb-4">
+              This action cannot be undone. Do you want to delete this ride?
+            </p>
+            <div className="flex justify-end gap-4">
+              <button
+                onClick={handleCloseDialog}
+                className="bg-gray-300 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-400"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteRide}
+                className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {user && (
         <RideForm
           isOpen={isModalOpen}
@@ -230,203 +291,16 @@ export default function GroupPage() {
           <h2 className="text-xl font-semibold">Available Cars</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
             {/* Car 1 */}
-            {allRides.map((ride) => (
-              <RideCard key={ride.id} ride={ride} joinGroup={() => handleJoinRide(ride.id)} />
+            {uniqueRides.map((ride) => (
+              <RideCard
+                key={ride.id}
+                ride={ride}
+                joinGroup={() => handleJoinRide(ride.id)}
+                inRide={inRide}
+                userId={user.uid}
+                handleOpenDialog={() => handleOpenDialog(ride.id)}
+              />
             ))}
-            <div className="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1">
-              <div className="bg-campus-purple text-white p-4 flex justify-between items-center">
-                <div className="flex items-center gap-2">
-                  <div className="bg-white text-purple-600 rounded-full p-2">
-                    <Car size={24} />
-                  </div>
-                  <span className="font-bold text-lg">Alex Johnson's Ride</span>
-                </div>
-                <div className="flex items-center gap-1 bg-white text-purple-800 px-3 py-1 rounded-full text-sm font-bold">
-                  <Users size={16} />
-                  <span>3/4</span>
-                </div>
-              </div>
-              <div className="p-5">
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="relative">
-                    <img
-                      src="/api/placeholder/40/40"
-                      alt="Alex Johnson"
-                      className="w-12 h-12 rounded-full border-2 border-purple-400"
-                    />
-                    <div className="absolute -bottom-1 -right-1 bg-purple-500 text-white rounded-full p-1">
-                      <Coffee size={12} />
-                    </div>
-                  </div>
-                  <div>
-                    <div className="font-bold">Alex Johnson</div>
-                    <div className="text-xs text-purple-600 font-bold uppercase">
-                      Driver Extraordinaire
-                    </div>
-                  </div>
-                </div>
-                <div className="mb-4 flex items-center gap-2 text-sm bg-purple-50 p-2 rounded-lg">
-                  <Music size={16} className="text-purple-500" />
-                  <span className="font-medium">DJ & Karaoke</span>
-                </div>
-                <div className="pl-4 border-l-2 border-purple-200 ml-4">
-                  <div className="flex items-center gap-2 mb-3 animate-fadeIn">
-                    <img
-                      src="/api/placeholder/40/40"
-                      alt="Taylor Smith"
-                      className="w-10 h-10 rounded-full border border-gray-200"
-                    />
-                    <span className="font-medium">Taylor Smith</span>
-                  </div>
-                  <div className="flex items-center gap-2 mb-3 animate-fadeIn">
-                    <img
-                      src="/api/placeholder/40/40"
-                      alt="Jamie Lee"
-                      className="w-10 h-10 rounded-full border border-gray-200"
-                    />
-                    <span className="font-medium">Jamie Lee</span>
-                  </div>
-                  <div className="mt-4">
-                    <button
-                      onClick={handleJoinRide}
-                      className="bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 py-2 px-4 rounded-full flex items-center gap-2 font-medium text-sm transform hover:scale-105 transition-all"
-                    >
-                      <UserPlus size={16} />
-                      Join this adventure mobile!
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Car 2 */}
-            <div className="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1">
-              <div className="bg-lime-500 text-white p-4 flex justify-between items-center">
-                <div className="flex items-center gap-2">
-                  <div className="bg-white text-purple-600 rounded-full p-2">
-                    <Car size={24} />
-                  </div>
-                  <span className="font-bold text-lg">Chris Wilson's Ride</span>
-                </div>
-                <div className="flex items-center gap-1 bg-white text-purple-800 px-3 py-1 rounded-full text-sm font-bold">
-                  <Users size={16} />
-                  <span>2/3</span>
-                </div>
-              </div>
-              <div className="p-5">
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="relative">
-                    <img
-                      src="/api/placeholder/40/40"
-                      alt="Chris Wilson"
-                      className="w-12 h-12 rounded-full border-2 border-purple-400"
-                    />
-                    <div className="absolute -bottom-1 -right-1 bg-purple-500 text-white rounded-full p-1">
-                      <Coffee size={12} />
-                    </div>
-                  </div>
-                  <div>
-                    <div className="font-bold">Chris Wilson</div>
-                    <div className="text-xs text-purple-600 font-bold uppercase">
-                      Driver Extraordinaire
-                    </div>
-                  </div>
-                </div>
-                <div className="mb-4 flex items-center gap-2 text-sm bg-purple-50 p-2 rounded-lg">
-                  <Music size={16} className="text-purple-500" />
-                  <span className="font-medium">Podcasts & Snacks</span>
-                </div>
-                <div className="pl-4 border-l-2 border-purple-200 ml-4">
-                  <div className="flex items-center gap-2 mb-3 animate-fadeIn">
-                    <img
-                      src="/api/placeholder/40/40"
-                      alt="Morgan Fields"
-                      className="w-10 h-10 rounded-full border border-gray-200"
-                    />
-                    <span className="font-medium">Morgan Fields</span>
-                  </div>
-                  <div className="mt-4">
-                    <button
-                      onClick={() => joinCar(2)}
-                      className="bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 py-2 px-4 rounded-full flex items-center gap-2 font-medium text-sm transform hover:scale-105 transition-all"
-                    >
-                      <UserPlus size={16} />
-                      Join this adventure mobile!
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Optional: Add a third example car that's full */}
-            <div className="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1">
-              <div className="bg-blue-500 text-white p-4 flex justify-between items-center">
-                <div className="flex items-center gap-2">
-                  <div className="bg-white text-purple-600 rounded-full p-2">
-                    <Car size={24} />
-                  </div>
-                  <span className="font-bold text-lg">Pat Rivera's Ride</span>
-                </div>
-                <div className="flex items-center gap-1 bg-white text-purple-800 px-3 py-1 rounded-full text-sm font-bold">
-                  <Users size={16} />
-                  <span>4/4</span>
-                </div>
-              </div>
-              <div className="p-5">
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="relative">
-                    <img
-                      src="/api/placeholder/40/40"
-                      alt="Pat Rivera"
-                      className="w-12 h-12 rounded-full border-2 border-purple-400"
-                    />
-                    <div className="absolute -bottom-1 -right-1 bg-purple-500 text-white rounded-full p-1">
-                      <Coffee size={12} />
-                    </div>
-                  </div>
-                  <div>
-                    <div className="font-bold">Pat Rivera</div>
-                    <div className="text-xs text-purple-600 font-bold uppercase">
-                      Driver Extraordinaire
-                    </div>
-                  </div>
-                </div>
-                <div className="mb-4 flex items-center gap-2 text-sm bg-purple-50 p-2 rounded-lg">
-                  <Music size={16} className="text-purple-500" />
-                  <span className="font-medium">Party On Wheels</span>
-                </div>
-                <div className="pl-4 border-l-2 border-purple-200 ml-4">
-                  <div className="flex items-center gap-2 mb-3 animate-fadeIn">
-                    <img
-                      src="/api/placeholder/40/40"
-                      alt="Sam Chen"
-                      className="w-10 h-10 rounded-full border border-gray-200"
-                    />
-                    <span className="font-medium">Sam Chen</span>
-                  </div>
-                  <div className="flex items-center gap-2 mb-3 animate-fadeIn">
-                    <img
-                      src="/api/placeholder/40/40"
-                      alt="Jordan Patel"
-                      className="w-10 h-10 rounded-full border border-gray-200"
-                    />
-                    <span className="font-medium">Jordan Patel</span>
-                  </div>
-                  <div className="flex items-center gap-2 mb-3 animate-fadeIn">
-                    <img
-                      src="/api/placeholder/40/40"
-                      alt="Blake Thompson"
-                      className="w-10 h-10 rounded-full border border-gray-200"
-                    />
-                    <span className="font-medium">Blake Thompson</span>
-                  </div>
-                  <div className="mt-3 text-sm text-orange-500 flex items-center gap-2 bg-orange-50 p-2 rounded-lg font-medium">
-                    <Users size={16} />
-                    This ride is fully booked!
-                  </div>
-                </div>
-              </div>
-            </div>
 
             {/* "Add a car" card */}
             <div className="flex items-center justify-center border-2 border-dashed border-purple-300 rounded-xl p-8 bg-gradient-to-br from-white to-purple-50 hover:shadow-lg transition-all">
@@ -454,17 +328,17 @@ function RandomBanner({ children }) {
   // Build your full bg‑class names
   const bgClasses = colors.map((c) => `bg-${c}-500`);
 
-
-
   // Pick one at mount
   const [bgClass] = useState(() => {
     const idx = Math.floor(Math.random() * bgClasses.length);
-    console.log(bgClasses[idx])
+    console.log(bgClasses[idx]);
     return bgClasses[idx];
   }, []);
 
   return (
-    <div className={`${bgClass} text-white p-4 flex justify-between items-center`}>
+    <div
+      className={`${bgClass} text-white p-4 flex justify-between items-center`}
+    >
       {children}
     </div>
   );

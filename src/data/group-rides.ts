@@ -82,12 +82,18 @@ export async function getGroupById(groupId: string) {
 interface Ride {
   id: string;
   groupId: string;
-  driverId: string;
+  driver: Rider;
   vibe: string;
   carId: string;
   maxRiders: number;
-  riders: string[];
+  riders: Rider[];
   createdAt: Timestamp;
+}
+
+interface Rider {
+  id: string;
+  name: string;
+  profileUrl: string;
 }
 
 export async function getRidesByGroupId(
@@ -96,7 +102,10 @@ export async function getRidesByGroupId(
   setLoading: Dispatch<SetStateAction<boolean>>,
 ) {
   try {
-    const ridesRef = collection(db, "groups", groupId, "rides");
+    const ridesRef = query(
+      collection(db, "groups", groupId, "rides"),
+      orderBy("createdAt", "desc") // or "asc" for oldest first
+    );
 
     const unsubscribe = onSnapshot(ridesRef, (querySnapshot) => {
       const newRides: Ride[] = [];
@@ -119,18 +128,30 @@ export async function checkUserInRides(userId: string, groupId: string) {
   const rideDocRef = collection(db, "groups", groupId, "rides")
   const rideDocs = await getDocs(rideDocRef)
 
+  console.log("TEST")
+
   for (const rideDoc of rideDocs.docs) {
     const ride = rideDoc.data() as Ride
 
-    const isDriver = ride.driverId === userId
+    console.log("RIDE: ", ride)
+
+    const isDriver = ride.driver.id === userId
+
+    console.log("Is driver?: ", isDriver)
+
     const isRider = ride.riders.some((r: any) => r.id === userId)
+
+    console.log("Is rider?: ", isRider)
+
 
     if (isDriver || isRider) {
       // user already in a ride
+      console.log("User in ride")
       return true
     }
   }
 
   // not in any rides
+  console.log("User not in ride")
   return false
 }

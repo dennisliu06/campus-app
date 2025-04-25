@@ -1,10 +1,10 @@
 "use server";
-
 import { db, storage } from "@/lib/firebase";
 import {
   Timestamp,
   addDoc,
   collection,
+  deleteDoc,
   doc,
   getDoc,
   runTransaction,
@@ -235,15 +235,22 @@ export const joinRide = async (
     console.log(e)
   }
 
-
-
   // if (!rideDoc.exists()) {
   //   return { error: "Ride doesnt exist!" };
   // }
 
   // const ride = rideDoc.data();
-
-
-  
-
 };
+
+export const deleteRide = async (rideId: string, groupId: string) => {
+  const ridesCollectionRef = collection(db, "groups", groupId, "rides")
+  const rideDocRef = doc(ridesCollectionRef, rideId)
+
+  try {
+    await deleteDoc(rideDocRef)
+
+    return { success: "Ride successfully deleted!" }
+  } catch (e: any) {
+    return { error: e.message }
+  }
+}
