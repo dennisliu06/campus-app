@@ -39,7 +39,8 @@ export default function RideForm({
         setCars(fetchedCars);
 
         if (fetchedCars && fetchedCars[0]) {
-          setForm((prev) => ({...prev, carId: fetchedCars[0].id }));
+          console.log("Car: ", fetchedCars[0].id)
+          setForm((prev) => ({...prev, carId: fetchedCars[0].id, maxRiders: fetchedCars[0].maxCapacity }));
         } else {
           setHasCars(false);
         }
@@ -55,6 +56,8 @@ export default function RideForm({
     e.preventDefault();
     if(selectedCar) {
       onCreate({carId: selectedCar.id, maxRiders: selectedCar.maxCapacity, vibe: form.vibe})
+    } else {
+      onCreate(form)
     }
 
     onClose();

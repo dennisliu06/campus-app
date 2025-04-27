@@ -126,7 +126,8 @@ export default function RideCard({
                   <Users size={16} />
                   This ride is fully booked!
                 </div>
-              ) : !inRide ? (
+              ) : !ride.riders.some((rider) => rider.id === userId) &&
+                ride.driver.id !== userId && !inRide ? (
                 <div className="mt-4">
                   <button
                     onClick={joinGroup}

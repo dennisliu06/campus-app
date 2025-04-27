@@ -32,7 +32,6 @@ export default function GroupPage() {
   const { groupId } = useParams();
   const [group, setGroup] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedCar, setSelectedCar] = useState("");
   const [loading, setLoading] = useState(true);
   const [allRides, setAllRides] = useState([]);
   const [profile, setProfile] = useState();
@@ -41,6 +40,16 @@ export default function GroupPage() {
   const { user, loading: authLoading } = useAuth();
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [rideToDelete, setRideToDelete] = useState(null);
+
+  const fetchRides = async () => {
+    setLoading(true);
+    const unsubscribe = await getRidesByGroupId(
+      groupId,
+      setAllRides,
+      setLoading
+    );
+    return () => unsubscribe();
+  };
 
   useEffect(() => {
     const fetchGroup = async () => {
@@ -63,16 +72,6 @@ export default function GroupPage() {
   }, [groupId, authLoading, user]);
 
   useEffect(() => {
-    const fetchRides = async () => {
-      setLoading(true);
-      const unsubscribe = await getRidesByGroupId(
-        groupId,
-        setAllRides,
-        setLoading
-      );
-
-      return () => unsubscribe();
-    };
 
     fetchRides();
   }, [groupId]);
@@ -125,14 +124,14 @@ export default function GroupPage() {
       handleCloseDialog();
 
       // Call your function to delete the ride here
-      const deleteStatus = await deleteRide(rideToDelete, groupId)
+      const deleteStatus = await deleteRide(rideToDelete, groupId);
 
       if (deleteStatus.success) {
-        toast.success(deleteStatus.success)
+        toast.success(deleteStatus.success);
+        await fetchRides(); 
       } else {
-        toast.error(deleteStatus.error)
+        toast.error(deleteStatus.error);
       }
-      
     }
   };
 
@@ -183,8 +182,8 @@ export default function GroupPage() {
     const createdRide = await createRide(data);
 
     if (createdRide.success && createdRide.id) {
-      setIsDriver(true)
       toast.success("Ride added!");
+      await fetchRides(); 
     } else {
       toast.error("Something went wrong!");
     }
@@ -212,8 +211,9 @@ export default function GroupPage() {
     const joinedRide = await joinRide(groupId, rideId, rider);
 
     if (joinedRide.success) {
-      setInRide(true)
+      setInRide(true);
       toast.success(joinedRide.success);
+      await fetchRides(); 
     } else {
       toast.error(joinedRide.error);
     }
@@ -225,12 +225,14 @@ export default function GroupPage() {
     const leaveRideStatus = await leaveRide(rideId, groupId, userId);
 
     if (leaveRideStatus.error) {
-      toast.error(leaveRideStatus.id)
+      toast.error(leaveRideStatus.id);
     } else if (leaveRideStatus.success) {
-      setInRide(false)
-      toast.success(leaveRideStatus.success)
+      setInRide(false);
+
+      toast.success(leaveRideStatus.success);
+      await fetchRides(); 
     }
-  }
+  };
 
   const uniqueRides = Array.from(
     new Map(allRides.map((ride) => [ride.id, ride])).values()
