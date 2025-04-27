@@ -13,7 +13,7 @@ import toast from "react-hot-toast";
 import GroupRideModal from "../GroupRideForm";
 import RideForm from "./RideForm";
 import { useAuth } from "@/context/AuthContext";
-import { createRide, deleteRide, joinRide } from "@/actions/groups";
+import { createRide, deleteRide, joinRide, leaveRide } from "@/actions/groups";
 import { getUserById } from "@/data/users";
 import RideCard from "./RideCard";
 
@@ -37,11 +37,10 @@ export default function GroupPage() {
   const [allRides, setAllRides] = useState([]);
   const [profile, setProfile] = useState();
   const [inRide, setInRide] = useState(false);
+  const [isDriver, setIsDriver] = useState(false);
   const { user, loading: authLoading } = useAuth();
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [rideToDelete, setRideToDelete] = useState(null);
-
-  const onCopy = () => {};
 
   useEffect(() => {
     const fetchGroup = async () => {
@@ -137,6 +136,15 @@ export default function GroupPage() {
     }
   };
 
+  const handleCopy = async (text) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success("Group code copied to clipboard!");
+    } catch (err) {
+      console.error("Failed to copy!", err);
+    }
+  };
+
   if (loading || authLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -175,6 +183,7 @@ export default function GroupPage() {
     const createdRide = await createRide(data);
 
     if (createdRide.success && createdRide.id) {
+      setIsDriver(true)
       toast.success("Ride added!");
     } else {
       toast.error("Something went wrong!");
@@ -203,11 +212,25 @@ export default function GroupPage() {
     const joinedRide = await joinRide(groupId, rideId, rider);
 
     if (joinedRide.success) {
+      setInRide(true)
       toast.success(joinedRide.success);
     } else {
       toast.error(joinedRide.error);
     }
   };
+
+  const handleLeaveRide = async (rideId) => {
+    const userId = user.uid;
+
+    const leaveRideStatus = await leaveRide(rideId, groupId, userId);
+
+    if (leaveRideStatus.error) {
+      toast.error(leaveRideStatus.id)
+    } else if (leaveRideStatus.success) {
+      setInRide(false)
+      toast.success(leaveRideStatus.success)
+    }
+  }
 
   const uniqueRides = Array.from(
     new Map(allRides.map((ride) => [ride.id, ride])).values()
@@ -255,7 +278,7 @@ export default function GroupPage() {
           <div className="flex items-center space-x-4 border-b pb-4">
             <div className="w-32 h-32 rounded-full overflow-hidden">
               <Image
-                src={group.imageUrl}
+                src={group.imageUrl || "/bus.jpg"}
                 alt="Group Image"
                 height={128}
                 width={128}
@@ -275,9 +298,7 @@ export default function GroupPage() {
                 </span>
                 <button
                   className="text-campus-purple"
-                  onClick={() =>
-                    navigator.clipboard.writeText(exampleGroup.groupId)
-                  }
+                  onClick={() => handleCopy(groupId)}
                 >
                   Copy
                 </button>
@@ -296,6 +317,7 @@ export default function GroupPage() {
                 key={ride.id}
                 ride={ride}
                 joinGroup={() => handleJoinRide(ride.id)}
+                leaveRide={() => handleLeaveRide(ride.id)}
                 inRide={inRide}
                 userId={user.uid}
                 handleOpenDialog={() => handleOpenDialog(ride.id)}
@@ -321,25 +343,5 @@ export default function GroupPage() {
         </div>
       </div>
     </>
-  );
-}
-
-function RandomBanner({ children }) {
-  // Build your full bg‑class names
-  const bgClasses = colors.map((c) => `bg-${c}-500`);
-
-  // Pick one at mount
-  const [bgClass] = useState(() => {
-    const idx = Math.floor(Math.random() * bgClasses.length);
-    console.log(bgClasses[idx]);
-    return bgClasses[idx];
-  }, []);
-
-  return (
-    <div
-      className={`${bgClass} text-white p-4 flex justify-between items-center`}
-    >
-      {children}
-    </div>
   );
 }

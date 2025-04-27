@@ -34,24 +34,22 @@ interface Rider {
 export default function RideCard({
   ride,
   joinGroup,
+  leaveRide,
   inRide,
+  isDriver,
   userId,
-  handleOpenDialog
+  handleOpenDialog,
 }: {
   ride: Ride;
   joinGroup: () => void;
+  leaveRide: (rideId: string) => void;
   inRide: boolean;
+  isDriver: boolean;
   userId: string;
   handleOpenDialog: (rideId: string) => void;
 }) {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [rideToDelete, setRideToDelete] = useState<string | null>(null);
-
-  const handleCloseDialog = () => {
-    setRideToDelete(null);
-    setShowConfirmDialog(false);
-  };
-
 
   if (!ride) {
     return <></>;
@@ -64,8 +62,6 @@ export default function RideCard({
     >
       {ride.driver && ride.riders && ride.maxRiders && (
         <>
-          
-
           <RandomBanner>
             <div className="flex items-center gap-2">
               <div className="bg-white text-purple-600 rounded-full p-2">
@@ -86,13 +82,15 @@ export default function RideCard({
           <div className="p-5">
             <div className="flex items-center gap-2 mb-4">
               <div className="relative">
-                <Image
-                  src={ride.driver.profilePicUrl || "/defaultPfp.jpg"}
-                  alt={ride.driver.name ?? "Driver profile picture"}
-                  width={48}
-                  height={48}
-                  className="rounded-full border-2 border-purple-400 object-cover"
-                />
+                <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-purple-400">
+                  <Image
+                    src={ride.driver.profilePicUrl || "/defaultPfp.jpg"}
+                    alt={ride.driver.name ?? "Driver profile picture"}
+                    width={48}
+                    height={48}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
                 <div className="absolute -bottom-1 -right-1 bg-purple-500 text-white rounded-full p-1">
                   <Coffee size={12} />
                 </div>
@@ -151,6 +149,18 @@ export default function RideCard({
                 </button>
               </div>
             )}
+            {ride.driver.id !== userId &&
+              ride.riders.some((rider) => rider.id === userId) && (
+                <div className="mt-4">
+                  <button
+                    onClick={() => leaveRide(ride.id)}
+                    className="bg-yellow-100 text-yellow-800 hover:bg-yellow-200 py-2 px-4 rounded-full flex items-center gap-2 font-medium text-sm transition-all"
+                  >
+                    <Trash2 size={16} />
+                    Leave this ride
+                  </button>
+                </div>
+              )}
           </div>
         </>
       )}

@@ -196,43 +196,43 @@ export const joinRide = async (
   const ridesCollectionRef = collection(db, "groups", groupId, "rides");
   const rideDocRef = doc(ridesCollectionRef, rideId);
 
-  
   try {
-    let inRide = false
-    let rideExists = true
+    let inRide = false;
+    let rideExists = true;
     await runTransaction(db, async (transaction) => {
-      const rideDoc = await transaction.get(rideDocRef)
+      const rideDoc = await transaction.get(rideDocRef);
       if (!rideDoc.exists()) {
-        rideExists = false
-        return
+        rideExists = false;
+        return;
       }
 
-      const ride = rideDoc.data()
+      const ride = rideDoc.data();
 
       if (
         (ride.riders && ride.riders.some((r: Rider) => r.id === rider.id)) ||
         ride.driver.id == rider.id
       ) {
-        inRide = true
-        return
+        inRide = true;
+        return;
       }
 
-      const riderList = ride.riders
+      const riderList = ride.riders;
 
+      riderList.push(rider);
 
-      riderList.push(rider)
+      transaction.update(rideDocRef, { riders: riderList });
+    });
 
+    if (inRide) {
+      return { error: "Already in this ride!" };
+    }
+    if (!rideExists) {
+      return { error: "This ride doesnt exist!" };
+    }
 
-
-      transaction.update(rideDocRef, { riders: riderList })
-    })
-
-    if (inRide) { return { error: "Already in this ride!" } }
-    if (!rideExists) { return { error: "This ride doesnt exist!" } }
-
-    return { success: "Joined ride!" }
+    return { success: "Joined ride!" };
   } catch (e) {
-    console.log(e)
+    console.log(e);
   }
 
   // if (!rideDoc.exists()) {
@@ -243,14 +243,64 @@ export const joinRide = async (
 };
 
 export const deleteRide = async (rideId: string, groupId: string) => {
-  const ridesCollectionRef = collection(db, "groups", groupId, "rides")
-  const rideDocRef = doc(ridesCollectionRef, rideId)
+  const ridesCollectionRef = collection(db, "groups", groupId, "rides");
+  const rideDocRef = doc(ridesCollectionRef, rideId);
 
   try {
-    await deleteDoc(rideDocRef)
+    await deleteDoc(rideDocRef);
 
-    return { success: "Ride successfully deleted!" }
+    return { success: "Ride successfully deleted!" };
   } catch (e: any) {
-    return { error: e.message }
+    return { error: e.message };
   }
-}
+};
+
+export const leaveRide = async (
+  rideId: string,
+  groupId: string,
+  userId: string
+) => {
+  const ridesCollectionRef = collection(db, "groups", groupId, "rides");
+  const rideDocRef = doc(ridesCollectionRef, rideId);
+
+  try {
+    let notInRide = false;
+    let rideExists = true;
+
+    await runTransaction(db, async (transaction) => {
+      const rideDoc = await transaction.get(rideDocRef);
+      if (!rideDoc.exists()) {
+        rideExists = false;
+        return;
+      }
+
+      const ride = rideDoc.data();
+
+      if (
+        !(ride.riders && ride.riders.some((r: Rider) => r.id === userId)) &&
+        (ride.driver.id == userId)
+      ) {
+        notInRide = true;
+        return;
+      }
+
+      const riderList = ride.riders as Array<Rider>;
+
+      const newRiderList = riderList.filter((r) => r.id != userId)
+
+      transaction.update(rideDocRef, { riders: newRiderList });
+    });
+
+    if (notInRide) {
+      return { error: "You are not in this ride!" };
+    }
+    if (!rideExists) {
+      return { error: "This ride doesnt exist!" };
+    }
+
+    return { success: "Left ride!" };
+  } catch (e) {
+    console.log(e);
+  }
+  
+};
