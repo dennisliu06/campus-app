@@ -2,12 +2,12 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import { NotificationProvider } from "@/context/NotificationContext";
-import toast, { Toaster } from "react-hot-toast";
 
 import AppWrapper from "@/components/AppWrapper";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Analytics } from "@vercel/analytics/react"
+import { Toaster } from "react-hot-toast";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -37,6 +37,7 @@ export default function RootLayout({ children }) {
               {children}
               <Footer />
               <Analytics />
+              <Toaster position="bottom-right" />
             </NotificationProvider>
           </AppWrapper>
         </AuthProvider>
