@@ -175,7 +175,6 @@ function RandomBanner({ children }: any) {
   // Pick one at mount
   const [bgClass] = useState(() => {
     const idx = Math.floor(Math.random() * bgClasses.length);
-    console.log(bgClasses[idx]);
     return bgClasses[idx];
   });
 

@@ -54,7 +54,6 @@ export async function getGroupsByUserId(userId: string) {
     ...doc.data(),
   }));
 
-  console.log("groups: ", groups);
   return groups;
 }
 
@@ -128,30 +127,21 @@ export async function checkUserInRides(userId: string, groupId: string) {
   const rideDocRef = collection(db, "groups", groupId, "rides")
   const rideDocs = await getDocs(rideDocRef)
 
-  console.log("TEST")
-
   for (const rideDoc of rideDocs.docs) {
     const ride = rideDoc.data() as Ride
 
-    console.log("RIDE: ", ride)
 
     const isDriver = ride.driver.id === userId
 
-    console.log("Is driver?: ", isDriver)
-
     const isRider = ride.riders.some((r: any) => r.id === userId)
-
-    console.log("Is rider?: ", isRider)
 
 
     if (isDriver || isRider) {
       // user already in a ride
-      console.log("User in ride")
       return true
     }
   }
 
   // not in any rides
-  console.log("User not in ride")
   return false
 }

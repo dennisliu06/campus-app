@@ -39,7 +39,6 @@ export default function RideForm({
         setCars(fetchedCars);
 
         if (fetchedCars && fetchedCars[0]) {
-          console.log("Car: ", fetchedCars[0].id)
           setForm((prev) => ({...prev, carId: fetchedCars[0].id, maxRiders: fetchedCars[0].maxCapacity }));
         } else {
           setHasCars(false);

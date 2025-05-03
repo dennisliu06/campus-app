@@ -99,7 +99,6 @@ export const createGroup = async ({
   try {
     await setDoc(groupRef, groupData);
 
-    console.log(groupRef.id);
     return { success: "Group created!", id: groupRef.id };
   } catch (e) {
     console.log(e);
@@ -129,7 +128,6 @@ export const addMember = async (userId: string, groupId: string) => {
       const newMembers = [...currentMembers, userId];
       transaction.update(groupDocRef, { members: newMembers });
     });
-    console.log("joined group");
     return { success: "Joined group!" };
   } catch (e) {
     console.log("error: ", e);
@@ -165,7 +163,6 @@ export const createRide = async ({
     riders = [];
   }
 
-  console.log("Driver, ", driver);
 
   const rideData = {
     groupId,

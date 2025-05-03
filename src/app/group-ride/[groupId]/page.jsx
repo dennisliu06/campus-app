@@ -197,16 +197,12 @@ export default function GroupPage() {
     const riderPfp = profile.profilePicURL;
     const riderUniversity = profile.university;
 
-    console.log(riderPfp);
-    console.log(riderUniversity);
 
     const rider = {
       id: riderId,
       name: riderName,
       profilePicUrl: riderPfp,
     };
-
-    console.log(rideId);
 
     const joinedRide = await joinRide(groupId, rideId, rider);
 
