@@ -314,13 +314,14 @@ export default function Navbar() {
                   >
                     Campus Rides
                   </Link>
-                  <Link
+                  {/* hidden for now */}
+                  {/* <Link
                     href={user ? "/marketplace" : "/marketplace-home"}
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-[#8163e9] hover:text-white transition-colors"
                     onClick={() => setCampusDropdownOpen(false)}
                   >
                     Campus Marketplace
-                  </Link>
+                  </Link> */}
                 </div>
               )}
             </div>
@@ -471,6 +472,13 @@ export default function Navbar() {
               </>
             ) : (
               <>
+              {/* <Link
+                    href="/blogs"
+                    className="text-gray-600 hover:text-gray-900 transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Blogs
+                  </Link> */}
                 <Link
                   href="/register"
                   className="text-gray-600 hover:text-gray-900 transition-colors"
@@ -593,13 +601,14 @@ export default function Navbar() {
                     >
                       Campus Rides
                     </Link>
-                    <Link
+                    {/* hidden for now */}
+                    {/* <Link
                       href="/marketplace"
                       className="block py-1.5 text-gray-700 hover:text-[#8163e9]"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       Campus Marketplace
-                    </Link>
+                    </Link> */}
                   </div>
 
                   <Link
@@ -708,6 +717,13 @@ export default function Navbar() {
                 </>
               ) : (
                 <>
+                  <Link
+                    href="/blogs"
+                    className="text-gray-600 hover:text-gray-900 transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Blogs
+                  </Link>
                   <Link
                     href="/register"
                     className="text-gray-600 hover:text-gray-900 transition-colors"

@@ -360,12 +360,13 @@ const MyProfile = () => {
                     <Trash2 className="w-5 h-5" />
                     Delete Account
                   </button>
-                  <Link href="/marketplace/profile">
+                  {/* marketplace hidden for now */}
+                  {/* <Link href="/marketplace/profile">
                     <button className="w-full py-2 mt-2 px-4 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center gap-2">
                       <UserCircle className="w-5 h-5" />
                       Switch to Marketplace Profile
                     </button>
-                  </Link>
+                  </Link> */}
                 </div>
               </div>
             </div>
