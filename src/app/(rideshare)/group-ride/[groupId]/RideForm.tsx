@@ -8,7 +8,8 @@ interface RideFormActions {
   userId: string;
   isOpen: boolean;
   onClose: () => void;
-  onCreate: (form: { carId: string; maxRiders: number; vibe: string }) => void;
+  onCreate: (form: { carId: string; maxRiders: number; vibe: string, startDateTime: string }) => void;
+  editing?: boolean;
 }
 
 interface Car {
@@ -22,24 +23,35 @@ export default function RideForm({
   isOpen,
   onClose,
   onCreate,
+  editing
 }: RideFormActions) {
   const [cars, setCars] = useState<Car[]>();
   const [hasCars, setHasCars] = useState(true);
-  const [selectedCar, setSelectedCar] = useState<{id: string, maxCapacity: number} | null>(null);
+  const [selectedCar, setSelectedCar] = useState<{
+    id: string;
+    maxCapacity: number;
+  } | null>(null);
+  const [startDateTime, setStartDateTime] = useState("");
   const [form, setForm] = useState({
     carId: "",
     maxRiders: 1,
     vibe: "",
+    startDateTime: "",
   });
 
   useEffect(() => {
     const fetchCars = async () => {
       try {
+        
         const fetchedCars = await getCarsByUserId(userId);
         setCars(fetchedCars);
-
+        
         if (fetchedCars && fetchedCars[0]) {
-          setForm((prev) => ({...prev, carId: fetchedCars[0].id, maxRiders: fetchedCars[0].maxCapacity }));
+          setForm((prev) => ({
+            ...prev,
+            carId: fetchedCars[0].id,
+            maxRiders: fetchedCars[0].maxCapacity,
+          }));
         } else {
           setHasCars(false);
         }
@@ -53,10 +65,15 @@ export default function RideForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if(selectedCar) {
-      onCreate({carId: selectedCar.id, maxRiders: selectedCar.maxCapacity, vibe: form.vibe})
+    if (selectedCar) {
+      onCreate({
+        carId: selectedCar.id,
+        maxRiders: selectedCar.maxCapacity,
+        vibe: form.vibe,
+        startDateTime: startDateTime
+      });
     } else {
-      onCreate(form)
+      onCreate(form);
     }
 
     onClose();
@@ -94,49 +111,66 @@ export default function RideForm({
               </div>
             ) : (
               <>
-              <h1 className="px-6 font-semibold mt-4 text-xl">Your ride details</h1>
-              <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                <div>
-                  <label
-                    htmlFor="carId"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Select Your Car
-                  </label>
-                  {cars && (
-                    <CustomDropdown
-                      cars={cars}
-                      selectedCar={selectedCar}
-                      onChange={setSelectedCar}
-                    />
-                  )}
-                </div>
+                <h1 className="px-6 font-semibold mt-4 text-xl">
+                  Your ride details
+                </h1>
+                <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                  <div>
+                    <label
+                      htmlFor="carId"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Select Your Car
+                    </label>
+                    {cars && (
+                      <CustomDropdown
+                        cars={cars}
+                        selectedCar={selectedCar}
+                        onChange={setSelectedCar}
+                      />
+                    )}
+                  </div>
 
-                <div>
+                  <div>
+                    <label
+                      htmlFor="vibe"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Vibe
+                    </label>
+                    <input
+                      type="text"
+                      id="vibe"
+                      name="vibe"
+                      value={form.vibe}
+                      onChange={(e) =>
+                        setForm({ ...form, vibe: e.target.value })
+                      }
+                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-campus-purple focus:border-campus-purple sm:text-sm p-2"
+                      placeholder="e.g., Party on wheels"
+                    />
+                  </div>
                   <label
-                    htmlFor="vibe"
+                    htmlFor="pickup"
                     className="block text-sm font-medium text-gray-700"
                   >
-                    Vibe
+                    Pickup Time
                   </label>
                   <input
-                    type="text"
-                    id="vibe"
-                    name="vibe"
-                    value={form.vibe}
-                    onChange={(e) => setForm({ ...form, vibe: e.target.value })}
+                    type="datetime-local"
+                    value={startDateTime}
+                    onChange={(e) => setStartDateTime(e.target.value)}
                     className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-campus-purple focus:border-campus-purple sm:text-sm p-2"
-                    placeholder="e.g., Party on wheels"
+                    required
                   />
-                </div>
 
-                <button
-                  type="submit"
-                  className="w-full bg-campus-purple text-white py-2 px-4 rounded-md hover:bg-campus-purple-hover transition"
-                >
-                  Create Ride
-                </button>
-              </form>
+                  <button
+                    type="submit"
+                    className="w-full bg-campus-purple text-white py-2 px-4 rounded-md hover:bg-campus-purple-hover transition"
+                  >
+                    {!editing ? ("Create ride") : ("Edit Ride")}
+                  </button>
+                </form>
               </>
             )}
           </motion.div>
@@ -148,8 +182,8 @@ export default function RideForm({
 
 interface CustomDropdownProps {
   cars: Car[];
-  selectedCar: {id: string, maxCapacity: number} | null;
-  onChange: ({id, maxCapacity}: {id: string, maxCapacity: number}) => void;
+  selectedCar: { id: string; maxCapacity: number } | null;
+  onChange: ({ id, maxCapacity }: { id: string; maxCapacity: number }) => void;
 }
 
 const CustomDropdown: React.FC<CustomDropdownProps> = ({
@@ -164,7 +198,10 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
       }
     };
@@ -183,7 +220,9 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
       >
         <div className="flex items-center">
           <span>{selected.name}</span>
-          <span className="ml-2 text-sm text-gray-500">Seats: {selected.maxCapacity}</span>
+          <span className="ml-2 text-sm text-gray-500">
+            Seats: {selected.maxCapacity}
+          </span>
         </div>
         <svg className="w-4 h-4" viewBox="0 0 20 20">
           <path fill="currentColor" d="M10 12l-4-4h8l-4 4z" />
@@ -195,22 +234,25 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
             <li
               key={car.id}
               onClick={() => {
-                onChange({id: car.id, maxCapacity: car.maxCapacity}); // Trigger onChange callback when a car is selected
+                onChange({ id: car.id, maxCapacity: car.maxCapacity }); // Trigger onChange callback when a car is selected
                 setIsOpen(false); // Close dropdown after selection
               }}
               className="px-3 py-2 hover:bg-gray-100 cursor-pointer flex justify-between items-center"
             >
               <span>{car.name}</span>
-              <span className="text-sm text-gray-500">Seats: {car.maxCapacity}</span>
+              <span className="text-sm text-gray-500">
+                Seats: {car.maxCapacity}
+              </span>
             </li>
           ))}
 
-              <Link href="/car-form" className="px-3 py-2 hover:bg-gray-100 cursor-pointer flex justify-between items-center">
-                Register a new car
-              </Link>
-
+          <Link
+            href="/car-form"
+            className="px-3 py-2 hover:bg-gray-100 cursor-pointer flex justify-between items-center"
+          >
+            Register a new car
+          </Link>
         </ul>
-        
       )}
     </div>
   );

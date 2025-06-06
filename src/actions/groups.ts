@@ -141,6 +141,7 @@ interface CreateRideForm {
   carId: string;
   maxRiders: number;
   riders?: Rider[];
+  startDateTime: string;
 }
 
 interface Rider {
@@ -156,13 +157,13 @@ export const createRide = async ({
   carId,
   maxRiders,
   riders,
+  startDateTime,
 }: CreateRideForm) => {
   const createdAt = serverTimestamp();
 
   if (!riders) {
     riders = [];
   }
-
 
   const rideData = {
     groupId,
@@ -172,6 +173,7 @@ export const createRide = async ({
     maxRiders,
     riders,
     createdAt,
+    startDateTime,
   };
 
   const ridesCollectionRef = collection(db, "groups", groupId, "rides");
@@ -275,7 +277,7 @@ export const leaveRide = async (
 
       if (
         !(ride.riders && ride.riders.some((r: Rider) => r.id === userId)) &&
-        (ride.driver.id == userId)
+        ride.driver.id == userId
       ) {
         notInRide = true;
         return;
@@ -283,7 +285,7 @@ export const leaveRide = async (
 
       const riderList = ride.riders as Array<Rider>;
 
-      const newRiderList = riderList.filter((r) => r.id != userId)
+      const newRiderList = riderList.filter((r) => r.id != userId);
 
       transaction.update(rideDocRef, { riders: newRiderList });
     });
@@ -299,5 +301,32 @@ export const leaveRide = async (
   } catch (e) {
     console.log(e);
   }
-  
+};
+
+export const editRide = async (
+  groupId: string,
+  rideId: string,
+  data: {
+    carId: string;
+    maxRiders: number;
+    vibe: string;
+    startDateTime: string;
+  }
+) => {
+  const ridesCollectionRef = collection(db, "groups", groupId, "rides");
+  const rideDocRef = doc(ridesCollectionRef, rideId);
+
+  try {
+    await runTransaction(db, async (transaction) => {
+      const rideDoc = await transaction.get(rideDocRef)
+      if (!rideDoc.exists()) {
+        return { error: "This ride does not exist!" }
+      }
+
+      transaction.update(rideDocRef, data);
+    })
+    return { success: "Ride edited!" }
+  } catch (e) {
+    console.log(e)
+  }
 };

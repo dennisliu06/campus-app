@@ -13,7 +13,7 @@ import toast from "react-hot-toast";
 import GroupRideModal from "../GroupRideForm";
 import RideForm from "./RideForm";
 import { useAuth } from "@/context/AuthContext";
-import { createRide, deleteRide, joinRide, leaveRide } from "@/actions/groups";
+import { createRide, deleteRide, editRide, joinRide, leaveRide } from "@/actions/groups";
 import { getUserById } from "@/data/users";
 import RideCard from "./RideCard";
 
@@ -39,8 +39,10 @@ export default function GroupPage() {
   const [isDriver, setIsDriver] = useState(false);
   const { user, loading: authLoading } = useAuth();
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const [rideToDelete, setRideToDelete] = useState(null);
-
+  const [rideToEdit, setRideToEdit] = useState(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [rideToDelete, setRideToDelete] = useState(null)
+  
   const fetchRides = async () => {
     setLoading(true);
     const unsubscribe = await getRidesByGroupId(
@@ -110,25 +112,46 @@ export default function GroupPage() {
   }, [user]);
 
   const handleOpenDialog = (rideId) => {
-    setRideToDelete(rideId);
+    setRideToEdit(rideId);
     setShowConfirmDialog(true);
   };
 
   const handleCloseDialog = () => {
-    setRideToDelete(null);
+    setRideToEdit(null);
     setShowConfirmDialog(false);
   };
 
+  const handleOpenDeleteDialog = (rideId) => {
+    setRideToDelete(rideId)
+    setShowDeleteDialog(true);
+  }
+
+  const handleCloseDeleteDialog = () => {
+    setRideToDelete(null);
+    setShowDeleteDialog(false);
+  };
+
+  const handleEditRide = async (form) => {
+    const editStatus = await editRide(groupId, rideToEdit, form)
+
+    if (editStatus.success) {
+      toast.success(editStatus.success)
+      await fetchRides()
+    } else {
+      toast.error(editStatus.error)
+    }
+  }
+
   const handleDeleteRide = async () => {
     if (rideToDelete) {
-      handleCloseDialog();
-
+      handleCloseDeleteDialog();
+      
       // Call your function to delete the ride here
       const deleteStatus = await deleteRide(rideToDelete, groupId);
 
       if (deleteStatus.success) {
         toast.success(deleteStatus.success);
-        await fetchRides(); 
+        await fetchRides();
       } else {
         toast.error(deleteStatus.error);
       }
@@ -160,7 +183,7 @@ export default function GroupPage() {
     );
   }
 
-  const handleCreateGroup = async ({ carId, maxRiders, vibe }) => {
+  const handleCreateGroup = async ({ carId, maxRiders, vibe, startDateTime }) => {
     const driverId = user.uid;
     const driverName = profile.fullName;
     const driverPfp = profile.profilePicURL;
@@ -177,6 +200,7 @@ export default function GroupPage() {
       vibe,
       carId,
       maxRiders,
+      startDateTime
     };
 
     const createdRide = await createRide(data);
@@ -237,7 +261,7 @@ export default function GroupPage() {
   return (
     <>
       {/* Confirmation Dialog */}
-      {showConfirmDialog && (
+      {showDeleteDialog && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
           <div className="bg-white rounded-lg p-6 w-96 shadow-xl">
             <div className="text-lg font-bold mb-4">Are you sure?</div>
@@ -246,7 +270,7 @@ export default function GroupPage() {
             </p>
             <div className="flex justify-end gap-4">
               <button
-                onClick={handleCloseDialog}
+                onClick={handleCloseDeleteDialog}
                 className="bg-gray-300 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-400"
               >
                 Cancel
@@ -260,6 +284,15 @@ export default function GroupPage() {
             </div>
           </div>
         </div>
+      )}
+      {user && (
+        <RideForm 
+          isOpen={showConfirmDialog}
+          onClose={() => handleCloseDialog()}
+          userId={user.uid}
+          editing
+          onCreate={handleEditRide}
+        />
       )}
       {user && (
         <RideForm
@@ -319,6 +352,7 @@ export default function GroupPage() {
                 inRide={inRide}
                 userId={user.uid}
                 handleOpenDialog={() => handleOpenDialog(ride.id)}
+                handleOpenDeleteDialog={() => handleOpenDeleteDialog(ride.id)}
               />
             ))}
 

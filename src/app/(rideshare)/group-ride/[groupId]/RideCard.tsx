@@ -1,5 +1,5 @@
 import { Timestamp } from "firebase/firestore";
-import { Car, Coffee, Music, Trash2, UserPlus, Users } from "lucide-react";
+import { Car, Coffee, Music, Trash2, UserPlus, Users, SquarePen } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 
@@ -23,6 +23,7 @@ interface Ride {
   maxRiders: number;
   riders: Rider[];
   vibe: string;
+  startDateTime: string;
 }
 
 interface Rider {
@@ -39,6 +40,7 @@ export default function RideCard({
   isDriver,
   userId,
   handleOpenDialog,
+  handleOpenDeleteDialog,
 }: {
   ride: Ride;
   joinGroup: () => void;
@@ -47,13 +49,17 @@ export default function RideCard({
   isDriver: boolean;
   userId: string;
   handleOpenDialog: (rideId: string) => void;
+  handleOpenDeleteDialog: (rideId: string) => void;
 }) {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [rideToDelete, setRideToDelete] = useState<string | null>(null);
 
+  
+
   if (!ride) {
     return <></>;
   }
+  const startDate = new Date(ride.startDateTime)
 
   return (
     <div
@@ -102,10 +108,15 @@ export default function RideCard({
                 </div>
               </div>
             </div>
-            <div className="mb-4 flex items-center gap-2 text-sm bg-purple-50 p-2 rounded-lg">
+            <div className="mb-2 flex items-center gap-2 text-sm bg-purple-50 p-2 rounded-lg">
               <Music size={16} className="text-purple-500" />
               <span className="font-medium">{ride.vibe}</span>
             </div>
+            {(!isNaN(startDate.getTime())) && (
+              <div className="mb-4">
+              <span className="font-small text-sm">Departure Time: {startDate.toLocaleDateString()} {startDate.toLocaleTimeString()}</span>
+              </div>
+            )}
             <div className="pl-4 border-l-2 border-purple-200 ml-4">
               {ride.riders.length > 0 &&
                 ride.riders.map((rider) => (
@@ -140,9 +151,16 @@ export default function RideCard({
               ) : null}
             </div>
             {ride.driver.id == userId && (
-              <div className="mt-4">
+              <div className="flex gap-4 pt-4">
                 <button
                   onClick={() => handleOpenDialog(ride.id)}
+                  className="bg-orange-100 text-orange-600 hover:bg-orange-200 py-2 px-4 rounded-full flex items-center gap-2 font-medium text-sm transition-all"
+                >
+                  <SquarePen size={16} />
+                  Edit this ride
+                </button>
+                <button
+                  onClick={() => handleOpenDeleteDialog(ride.id)}
                   className="bg-red-100 text-red-600 hover:bg-red-200 py-2 px-4 rounded-full flex items-center gap-2 font-medium text-sm transition-all"
                 >
                   <Trash2 size={16} />
