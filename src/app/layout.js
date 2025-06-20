@@ -6,8 +6,9 @@ import { NotificationProvider } from "@/context/NotificationContext";
 import AppWrapper from "@/components/AppWrapper";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { Analytics } from "@vercel/analytics/react"
+import { Analytics } from "@vercel/analytics/react";
 import { Toaster } from "react-hot-toast";
+import GoogleAnalytics from "@/lib/GoogleAnalytics";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,6 +31,7 @@ export default function RootLayout({ children }) {
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <GoogleAnalytics />
         <AuthProvider>
           <AppWrapper>
             <NotificationProvider>
