@@ -1,5 +1,18 @@
 import { db } from "@/lib/firebase";
-import { collection, doc, getDoc } from "firebase/firestore";
+import { Timestamp, collection, doc, getDoc } from "firebase/firestore";
+
+export interface User {
+  bio: string,
+  createAt: Timestamp,
+  email: string
+  fullName: string
+  location: string
+  profilePicUrl: string
+  role?: string
+  uid: string
+  university: string
+  updatedAt: Timestamp
+}
 
 export async function getUserById(userId: string) {
   const userRef = collection(db, "users")
@@ -13,7 +26,7 @@ export async function getUserById(userId: string) {
       return { error: "User doesnt exist!" }
     }
 
-    return { id: userDoc.id, ...userDoc.data() }
+    return { id: userDoc.id, ...userDoc.data() as User }
   } catch (e: any) {
     console.log(e)
 

@@ -338,6 +338,14 @@ export default function Navbar() {
                   About
                 </Link>
 
+                <Link
+                    href="/blogs"
+                    className="text-gray-600 hover:text-gray-900 transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Blogs
+                  </Link>
+
                 {/* Context-aware Messages with badge */}
                 {isMarketplace ? (
                   <Link
@@ -472,13 +480,13 @@ export default function Navbar() {
               </>
             ) : (
               <>
-              {/* <Link
+              <Link
                     href="/blogs"
                     className="text-gray-600 hover:text-gray-900 transition-colors"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Blogs
-                  </Link> */}
+                  </Link>
                 <Link
                   href="/register"
                   className="text-gray-600 hover:text-gray-900 transition-colors"
@@ -617,6 +625,14 @@ export default function Navbar() {
                     onClick={() => setIsMenuOpen(false)}
                   >
                     About
+                  </Link>
+
+                  <Link
+                    href="/blogs"
+                    className="text-gray-600 hover:text-gray-900 transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Blogs
                   </Link>
 
                   {/* Context-aware Options */}
